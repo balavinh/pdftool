@@ -29,7 +29,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .ok{color:var(--ok)}.er{color:var(--er)}
 .tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
 .tab{flex:1;min-width:110px;font-weight:600;padding:8px 8px}
-#zgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px;margin-top:10px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px;margin-top:10px}
 .pc{border:1px solid var(--bd);border-radius:8px;padding:6px;background:var(--card);text-align:center;cursor:grab;position:relative}
 .pc.over{outline:2px dashed var(--pr)}
 .pc.del{outline:2px solid var(--er)}.pc.del .pt{opacity:.35}
@@ -155,7 +155,7 @@ code{background:var(--bg);padding:1px 5px;border-radius:4px}
         <button id="zreset" disabled>Khôi phục ban đầu</button>
         <input id="zfile" type="file" multiple accept=".pdf,image/jpeg,image/png,image/webp" hidden>
       </div>
-      <div class="mut" id="zinfo">Chọn file PDF ở trên để xem các trang.</div>
+      <div class="mut" id="zinfo">Chưa có trang nào.</div>
       <div class="row" style="margin-top:12px"><b>Tự động đánh dấu trang trắng</b></div>
       <div class="row"><label>Độ nhạy: <b id="zsv">3</b>/5</label>
         <input id="zsens" type="range" min="1" max="5" step="1" value="3"></div>
@@ -168,7 +168,7 @@ code{background:var(--bg);padding:1px 5px;border-radius:4px}
         <button class="p" id="zgo" disabled>Lưu PDF mới</button>
       </div>
       <div class="bar"><i id="zpb"></i></div>
-      <div class="mut" id="zst">Chọn file để bắt đầu.</div>
+      <div class="mut" id="zst">Sẵn sàng.</div>
     </div>
     <div class="card res" id="zout">
       <div class="big" id="zsum"></div>
@@ -177,13 +177,13 @@ code{background:var(--bg);padding:1px 5px;border-radius:4px}
     </div>
     <div class="card">
       <div class="mut">Bấm vào ảnh để xem lớn • kéo thả thẻ trang để đổi thứ tự (hoặc dùng nút ← →) • ↺ ↻ xoay trang • 🗑 xóa / khôi phục trang.</div>
-      <div id="zgrid"></div>
+      <div class="pgrid" id="zgrid"></div>
     </div>
-    <p class="mut">Các trang được sao chép nguyên bản từ file gốc (chỉ thêm thông tin xoay), nên không giảm chất lượng và chữ vẫn bôi chọn được. Trang thêm từ file PDF khác cũng được giữ nguyên; ảnh thêm vào được đặt theo cách chọn ở tab Gộp file. Mục lục (bookmark) và biểu mẫu của file gốc có thể không được giữ lại.</p>
     <div id="zmodal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:50;align-items:center;justify-content:center;flex-direction:column;cursor:zoom-out">
       <canvas id="zmc" style="max-width:94vw;max-height:86vh;background:#fff"></canvas>
       <div id="zmt" style="color:#fff;margin-top:8px;font-size:13px"></div>
     </div>
+    <p class="mut">Các trang được sao chép nguyên bản từ file gốc (chỉ thêm thông tin xoay), nên không giảm chất lượng và chữ vẫn bôi chọn được. Trang thêm từ file PDF khác cũng được giữ nguyên; ảnh thêm vào được đặt theo cách chọn ở tab Gộp file. Mục lục (bookmark) và biểu mẫu của file gốc có thể không được giữ lại.</p>
   </div>
 
   <div id="pane-merge" style="display:none">
@@ -199,24 +199,57 @@ code{background:var(--bg);padding:1px 5px;border-radius:4px}
       <div class="row"><label>Độ nét trang Word/Excel</label>
         <select id="mdpi"><option value="110">110 DPI (nhẹ)</option><option value="150" selected>150 DPI (cân bằng)</option><option value="200">200 DPI (nét)</option></select></div>
       <div class="row">
-        <button class="p" id="mgo" disabled>Gộp thành 1 PDF</button>
+        <button class="p" id="mgo" disabled>Gộp &amp; xem trước</button>
         <button id="mstop" disabled>Dừng</button>
         <button id="mclear">Xóa danh sách</button>
       </div>
       <div class="bar"><i id="mpb"></i></div>
       <div class="mut" id="mst">Thêm file để bắt đầu.</div>
     </div>
-    <div class="card res" id="mres">
-      <div class="big" id="msum"></div>
-      <div class="mut" id="mdet"></div>
-      <div class="row"><button class="p" id="mdl">Tải file PDF đã gộp</button></div>
+    <div id="gwrap" style="display:none">
+      <div class="row" style="margin:4px 2px"><b>Kết quả gộp — xem trước và chỉnh sửa trước khi xuất</b></div>
+      <div class="card">
+      <div class="row">
+        <button id="gadd" disabled>+ Thêm trang từ file khác</button>
+        <button id="greset" disabled>Khôi phục ban đầu</button>
+        <input id="gfile" type="file" multiple accept=".pdf,image/jpeg,image/png,image/webp" hidden>
+      </div>
+      <div class="mut" id="ginfo">Chưa có trang nào.</div>
+      <div class="row" style="margin-top:12px"><b>Tự động đánh dấu trang trắng</b></div>
+      <div class="row"><label>Độ nhạy: <b id="gsv">3</b>/5</label>
+        <input id="gsens" type="range" min="1" max="5" step="1" value="3"></div>
+      <div class="mut" id="gsn" style="margin:-4px 0 8px"></div>
+      <div class="row"><label><input id="gmargin" type="checkbox" checked> Bỏ qua lề 4% khi dò</label>
+        <button id="gprev" disabled>Dò trang trắng</button>
+        <button id="gstop" disabled>Dừng</button></div>
+      <div class="mut" id="gres"></div>
+      <div class="row" style="margin-top:12px">
+        <button class="p" id="ggo" disabled>Xuất file PDF</button>
+      </div>
+      <div class="bar"><i id="gpb"></i></div>
+      <div class="mut" id="gst">Sẵn sàng.</div>
     </div>
-    <p class="mut">PDF và ảnh JPEG/PNG được đưa vào nguyên bản, không giảm chất lượng. Word và Excel được dựng lại ngay trong trình duyệt (không cần Office) nên bố cục có thể khác bản gốc: chưa hỗ trợ đầu/cuối trang, biểu đồ, hình vẽ, ô gộp, và các trang này là ảnh nên chữ không bôi chọn được. Định dạng cũ .doc và .xls chưa hỗ trợ, hãy lưu lại thành .docx / .xlsx.</p>
+    <div class="card res" id="gout">
+      <div class="big" id="gsum"></div>
+      <div class="mut" id="gdet"></div>
+      <div class="row"><button class="p" id="gdl">Tải file PDF đã gộp</button></div>
+    </div>
+    <div class="card">
+      <div class="mut">Bấm vào ảnh để xem lớn • kéo thả thẻ trang để đổi thứ tự (hoặc dùng nút ← →) • ↺ ↻ xoay trang • 🗑 xóa / khôi phục trang. Bấm “Gộp &amp; xem trước” lần nữa sẽ gộp lại từ danh sách file và bỏ các chỉnh sửa hiện tại.</div>
+      <div class="pgrid" id="ggrid"></div>
+    </div>
+    <div id="gmodal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:50;align-items:center;justify-content:center;flex-direction:column;cursor:zoom-out">
+      <canvas id="gmc" style="max-width:94vw;max-height:86vh;background:#fff"></canvas>
+      <div id="gmt" style="color:#fff;margin-top:8px;font-size:13px"></div>
+    </div>
+    </div>
+    <p class="mut">PDF và ảnh JPEG/PNG được đưa vào nguyên bản, không giảm chất lượng. Word và Excel được dựng lại ngay trong trình duyệt (không cần Office) nên bố cục có thể khác bản gốc: chưa hỗ trợ đầu/cuối trang, biểu đồ, hình vẽ, ô gộp, và các trang này là ảnh nên chữ không bôi chọn được. Định dạng cũ .doc và .xls chưa hỗ trợ, hãy lưu lại thành .docx / .xlsx. Sau khi gộp, bạn có thể sắp xếp, xoay, xóa trang hoặc thêm trang từ file PDF/ảnh khác ngay trong phần xem trước rồi mới xuất file.</p>
   </div>
+
   <footer>
     <div>Tác giả: nt.bang - CT284</div>
     <div class="lic">Phần mềm sử dụng các thư viện mã nguồn mở miễn phí, nhúng sẵn trong file này:<br>
-      <b>pdf.js</b> 5.6.205 — © Mozilla Foundation và những người đóng góp (giấy phép Apache-2.0) — đọc và hiển thị trang PDF (tab Nén PDF, dò trang trắng)<br>
+      <b>pdf.js</b> 5.6.205 — © Mozilla Foundation và những người đóng góp (giấy phép Apache-2.0) — đọc và hiển thị trang PDF (tab Nén PDF, dò trang trắng, xem trước trang)<br>
       <b>pdf-lib</b> 1.17.1 — © Andrew Dillon (giấy phép MIT) — ghi và sao chép trang PDF (tab Tách PDF, Chỉnh sửa PDF, Gộp file), kèm các thành phần:
       pako © Nodeca (MIT &amp; Zlib) • @pdf-lib/standard-fonts © Andrew Dillon (MIT) •
       @pdf-lib/upng © Photopea (MIT) • tslib © Microsoft Corp. (0BSD)<br>
@@ -251,7 +284,7 @@ const ready=(async()=>{
 })();
 const useWorker=()=>{};
 $("st").textContent="Đang nạp thư viện...";
-ready.then(()=>{$("st").textContent="Chọn file để bắt đầu.";if(pdfFile){$("go").disabled=false;$("prev").disabled=false;$("sprev").disabled=false;if(ED.src.length)$("zprev").disabled=false}})
+ready.then(()=>{$("st").textContent="Chọn file để bắt đầu.";if(pdfFile){$("go").disabled=false;$("prev").disabled=false;$("sprev").disabled=false}})
      .catch(e=>{$("st").innerHTML='<span class="er">Không nạp được pdf.js: '+(e&&e.message||e)+'</span>'});
 
 // --- UI ---
@@ -298,9 +331,7 @@ function showBlank(){
   $("bl").textContent=scan.hists.map((h,k)=>"Tr."+(k+1)+": "+(inkOf(h,scan.totals[k],lv)*100).toFixed(3)+"%").join("  •  ");
   $("bdet").style.display="block";
 }
-async function getScan(doc,total,pbId="pb",stId="st"){
-  const m=margin(),key=keyOf();
-  if(scan&&scan.key===key)return scan;
+async function scanDoc(doc,total,m,pbId,stId){
   const hists=[],totals=[];
   for(let i=1;i<=total;i++){
     if(stop)throw new Error("Đã dừng.");
@@ -320,7 +351,12 @@ async function getScan(doc,total,pbId="pb",stId="st"){
     $(stId).textContent="Đang dò trang trắng "+i+"/"+total+"...";
     await new Promise(r=>setTimeout(r));
   }
-  return scan={key,hists,totals};
+  return{hists,totals};
+}
+async function getScan(doc,total,pbId="pb",stId="st"){
+  const m=margin(),key=keyOf();
+  if(scan&&scan.key===key)return scan;
+  return scan={key,...await scanDoc(doc,total,m,pbId,stId)};
 }
 $("blank").onchange=()=>{$("bopt").style.display=$("blank").checked?"block":"none";showBlank()};
 $("sens").oninput=showBlank;
@@ -341,7 +377,7 @@ $("prev").onclick=async()=>{
 function setFile(f){
   if(!f)return;
   if(f.type!=="application/pdf"&&!/\.pdf$/i.test(f.name)){$("st").textContent="Vui lòng chọn file PDF.";return}
-  pdfFile=f;outBlob=null;scan=null;showBlank();$("sgo").disabled=false;$("sprev").disabled=!pdfjsLib;showSBlank();edLoad();$("sres").style.display="none";$("sst").textContent="Sẵn sàng.";$("spb").style.width="0";$("prev").disabled=!pdfjsLib;$("res").style.display="none";
+  pdfFile=f;outBlob=null;scan=null;showBlank();$("sgo").disabled=false;$("sprev").disabled=!pdfjsLib;showSBlank();EZ.loadFile(f);$("sres").style.display="none";$("sst").textContent="Sẵn sàng.";$("spb").style.width="0";$("prev").disabled=!pdfjsLib;$("res").style.display="none";
   $("info").textContent=f.name+" — "+fmt(f.size);
   $("go").disabled=!pdfjsLib;
   $("st").textContent="Sẵn sàng.";$("pb").style.width="0";
@@ -616,230 +652,232 @@ $("sprev").onclick=async()=>{
   finally{if(doc)doc.destroy();busy=false;$("sgo").disabled=!pdfFile;$("sprev").disabled=false;$("sstop").disabled=true}
 };
 
-// ================= TAB CHỈNH SỬA PDF =================
-const ED={gen:0,src:[],docs:[],items:[],drag:null,q:[],run:false,cache:{},io:null};
-let zBlob=null,zUrl=null,zmTok=0,zmIdx=-1;
+// ================= BỘ CHỈNH SỬA TRANG (dùng cho tab Chỉnh sửa PDF và tab Gộp file) =================
 const THW=170;
-const edDel=it=>it.man!==undefined?it.man:it.auto;
 function drawRot(dst,src,rot){
   const sw=src.width,sh=src.height,w2=rot%180?sh:sw,h2=rot%180?sw:sh;
   dst.width=w2;dst.height=h2;const c=dst.getContext("2d");
   c.save();c.translate(w2/2,h2/2);c.rotate(rot*Math.PI/180);c.drawImage(src,-sw/2,-sh/2);c.restore();
 }
-ED.io=new IntersectionObserver(es=>es.forEach(e=>{
-  if(!e.isIntersecting)return;const it=e.target._it;
-  if(!it.base&&!it.req){it.req=true;ED.q.push(it);edPump()}
-}),{rootMargin:"400px"});
-async function edPump(){
-  if(ED.run)return;ED.run=true;
-  while(ED.q.length){
-    const it=ED.q.shift();if(it.gen!==ED.gen||it.base)continue;
-    try{await edRender(it)}catch(e){}
-    await tick();
+function createEditor(P,opt){
+  const $e=x=>$(P+x);
+  const ED={gen:0,src:[],docs:[],items:[],drag:null,q:[],run:false,cache:{},io:null,scan:null};
+  let outBlob2=null,outUrl=null,pvTok=0,pvIdx=-1;
+  const del=it=>it.man!==undefined?it.man:it.auto;
+  ED.io=new IntersectionObserver(es=>es.forEach(e=>{
+    if(!e.isIntersecting)return;const it=e.target._it;
+    if(!it.base&&!it.req){it.req=true;ED.q.push(it);pump()}
+  }),{rootMargin:"400px"});
+  async function pump(){
+    if(ED.run)return;ED.run=true;
+    while(ED.q.length){
+      const it=ED.q.shift();if(it.gen!==ED.gen||it.base)continue;
+      try{await render(it)}catch(e){}
+      await tick();
+    }
+    ED.run=false;
   }
-  ED.run=false;
-}
-async function edRender(it){
-  const key=it.src+":"+it.page;
-  if(it.kind==="img"){
-    const c=document.createElement("canvas");c.width=THW;c.height=Math.max(1,Math.round(it.bm.height*THW/it.bm.width));
-    c.getContext("2d").drawImage(it.bm,0,0,c.width,c.height);it.base=c;
-  }else{
-    const pg=await ED.docs[it.src].getPage(it.page+1),v0=pg.getViewport({scale:1}),vp=pg.getViewport({scale:THW/v0.width});
-    const c=document.createElement("canvas");c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);
-    const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);
-    await pg.render({canvasContext:x,viewport:vp}).promise;pg.cleanup();it.base=c;
+  async function render(it){
+    if(it.kind==="img"){
+      const c=document.createElement("canvas");c.width=THW;c.height=Math.max(1,Math.round(it.bm.height*THW/it.bm.width));
+      c.getContext("2d").drawImage(it.bm,0,0,c.width,c.height);it.base=c;
+    }else{
+      const pg=await ED.docs[it.src].getPage(it.page+1),v0=pg.getViewport({scale:1}),vp=pg.getViewport({scale:THW/v0.width});
+      const c=document.createElement("canvas");c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);
+      const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);
+      await pg.render({canvasContext:x,viewport:vp}).promise;pg.cleanup();it.base=c;
+    }
+    ED.cache[it.src+":"+it.page]=it.base;paint(it);
   }
-  ED.cache[key]=it.base;edPaint(it);
-}
-function edItem(src,page,kind,extra){
-  return{src,page,kind,rot:0,auto:false,man:undefined,gen:ED.gen,base:ED.cache[src+":"+page]||null,req:false,...extra};
-}
-function edPaint(it){
-  if(!it.el)return;
-  const d=edDel(it);
-  it.el.classList.toggle("del",d);
-  const nm=it.src>0?ED.src[it.src].name:"";
-  it.badge.textContent=d?"SẼ XÓA"+(it.auto&&it.man===undefined?" (trang trắng)":""):(it.auto?"trắng (đang giữ lại)":nm);
-  it.badge.title=nm;
-  if(it.base)drawRot(it.cv,it.base,it.rot);
-  else{it.cv.width=120;it.cv.height=168}
-}
-function edInfo(){
-  const n=ED.items.length,dl=ED.items.filter(edDel).length;
-  $("zinfo").textContent=n?n+" trang • "+dl+" trang sẽ bị xóa • file mới có "+(n-dl)+" trang":"Chọn file PDF ở trên để xem các trang.";
-}
-function edLayout(){
-  const g=$("zgrid");
-  ED.items.forEach((it,i)=>{g.appendChild(it.el);it.num.textContent="Trang "+(i+1)});
-  edInfo();
-}
-function edMkCard(it){
-  const c=document.createElement("div");c.className="pc";c.draggable=true;c._it=it;
-  const pt=document.createElement("div");pt.className="pt";it.cv=document.createElement("canvas");pt.appendChild(it.cv);
-  it.badge=document.createElement("div");it.badge.className="pbadge";
-  it.num=document.createElement("div");it.num.className="pn";
-  const pb=document.createElement("div");pb.className="pbtn";
-  const mk=(t,title,fn)=>{const b=document.createElement("button");b.textContent=t;b.title=title;b.onclick=e=>{e.stopPropagation();fn()};pb.appendChild(b)};
-  mk("↺","Xoay trái",()=>{it.rot=(it.rot+270)%360;edPaint(it)});
-  mk("↻","Xoay phải",()=>{it.rot=(it.rot+90)%360;edPaint(it)});
-  mk("←","Dời lên trước",()=>edMove(it,-1));
-  mk("→","Dời ra sau",()=>edMove(it,1));
-  mk("🗑","Xóa / khôi phục trang",()=>{it.man=!edDel(it);edPaint(it);edInfo()});
-  pt.onclick=()=>edPreview(it);
-  c.append(pt,it.badge,it.num,pb);
-  c.ondragstart=e=>{ED.drag=it;e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","")};
-  c.ondragover=e=>{if(ED.drag&&ED.drag!==it){e.preventDefault();c.classList.add("over")}};
-  c.ondragleave=()=>c.classList.remove("over");
-  c.ondrop=e=>{
-    e.preventDefault();c.classList.remove("over");
-    const d=ED.drag;ED.drag=null;if(!d||d===it)return;
-    const from=ED.items.indexOf(d),to=ED.items.indexOf(it);
-    ED.items.splice(from,1);ED.items.splice(to,0,d);edLayout();
-  };
-  c.ondragend=()=>{ED.drag=null;document.querySelectorAll(".pc.over").forEach(x=>x.classList.remove("over"))};
-  it.el=c;ED.io.observe(c);
-}
-function edMove(it,d){
-  const i=ED.items.indexOf(it),j=i+d;if(j<0||j>=ED.items.length)return;
-  [ED.items[i],ED.items[j]]=[ED.items[j],ED.items[i]];edLayout();
-}
-function edBuild(){
-  ED.items.forEach(it=>{if(!it.el)edMkCard(it);edPaint(it)});
-  edLayout();
-}
-async function edLoad(){
-  const gen=++ED.gen;
-  ED.q.length=0;ED.io.disconnect();$("zgrid").textContent="";
-  ED.docs.forEach(d=>{try{d&&d.destroy()}catch(e){}});ED.docs=[];ED.src=[];ED.items=[];ED.cache={};
-  $("zout").style.display="none";$("zres").textContent="";$("zpb").style.width="0";
-  $("zgo").disabled=$("zadd").disabled=$("zreset").disabled=$("zprev").disabled=true;
-  edInfo();
-  if(!pdfFile)return;
-  $("zinfo").textContent="Đang đọc file...";
-  try{
-    await ready;
-    const bytes=new Uint8Array(await pdfFile.arrayBuffer()),doc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
-    if(gen!==ED.gen){doc.destroy();return}
-    ED.src=[{name:pdfFile.name,bytes,kind:"pdf"}];ED.docs=[doc];
-    for(let i=0;i<doc.numPages;i++)ED.items.push(edItem(0,i,"pdf"));
-    edBuild();edApplyAuto();
-    $("zst").textContent="Sẵn sàng.";
-    $("zgo").disabled=$("zadd").disabled=$("zreset").disabled=false;$("zprev").disabled=false;
-  }catch(e){$("zinfo").textContent="";$("zst").innerHTML='<span class="er">'+(e&&e.message||e)+'</span>'}
-}
-function edApplyAuto(){
-  const lv=LV[+$("zsens").value];
-  $("zsv").textContent=$("zsens").value;$("zsn").textContent=lv.n;
-  const ok=scan&&scan.key===keyOf(),rm=ok?new Set(splitPages(scan,+$("zsens").value).removed):new Set();
-  ED.items.forEach(it=>{if(it.src===0){it.auto=ok&&rm.has(it.page+1);edPaint(it)}});
-  $("zres").textContent=ok?rm.size+"/"+scan.hists.length+" trang của file gốc bị coi là trắng"+(rm.size?": "+fmtList([...rm]):""):"";
-  edInfo();
-}
-$("zsens").oninput=edApplyAuto;
-$("zmargin").onchange=edApplyAuto;
-$("zstop").onclick=()=>{stop=true};
-$("zprev").onclick=async()=>{
-  if(!ED.src.length||busy)return;
-  busy=true;stop=false;$("zprev").disabled=true;$("zstop").disabled=false;
-  try{
-    await getScan(ED.docs[0],ED.docs[0].numPages,"zpb","zst");edApplyAuto();
-    $("zst").textContent="Đã dò xong — trang trắng được tô đỏ, bấm 🗑 trên từng trang nếu muốn đổi ý.";
-  }catch(e){$("zst").innerHTML='<span class="er">'+(e&&e.message||e)+'</span>'}
-  finally{busy=false;$("zprev").disabled=false;$("zstop").disabled=true}
-};
-$("zreset").onclick=()=>{
-  if(!ED.src.length)return;
-  ED.items.forEach(it=>{ED.io.unobserve(it.el)});$("zgrid").textContent="";
-  ED.items=[];for(let i=0;i<ED.docs[0].numPages;i++)ED.items.push(edItem(0,i,"pdf"));
-  ED.src.length=1;ED.docs.slice(1).forEach(d=>{try{d&&d.destroy()}catch(e){}});ED.docs.length=1;
-  edBuild();edApplyAuto();$("zout").style.display="none";$("zst").textContent="Đã khôi phục về file gốc.";
-};
-$("zadd").onclick=()=>$("zfile").click();
-$("zfile").onchange=async e=>{
-  const fs=[...e.target.files];e.target.value="";if(!ED.src.length||!fs.length)return;
-  const errs=[];let added=0;
-  for(const f of fs){
+  const mkItem=(src,page,kind,extra)=>({src,page,kind,rot:0,auto:false,man:undefined,gen:ED.gen,base:ED.cache[src+":"+page]||null,req:false,...extra});
+  function paint(it){
+    if(!it.el)return;
+    const d=del(it);it.el.classList.toggle("del",d);
+    const nm=it.src>0?ED.src[it.src].name:"";
+    it.badge.textContent=d?"SẼ XÓA"+(it.auto&&it.man===undefined?" (trang trắng)":""):(it.auto?"trắng (đang giữ lại)":nm);
+    it.badge.title=nm;
+    if(it.base)drawRot(it.cv,it.base,it.rot);else{it.cv.width=120;it.cv.height=168}
+  }
+  function info(){
+    const n=ED.items.length,dl=ED.items.filter(del).length;
+    $e("info").textContent=n?n+" trang • "+dl+" trang sẽ bị xóa • file mới có "+(n-dl)+" trang":"Chưa có trang nào.";
+  }
+  function layout(){
+    const g=$e("grid");
+    ED.items.forEach((it,i)=>{g.appendChild(it.el);it.num.textContent="Trang "+(i+1)});
+    info();
+  }
+  function mkCard(it){
+    const c=document.createElement("div");c.className="pc";c.draggable=true;c._it=it;
+    const pt=document.createElement("div");pt.className="pt";it.cv=document.createElement("canvas");pt.appendChild(it.cv);
+    it.badge=document.createElement("div");it.badge.className="pbadge";
+    it.num=document.createElement("div");it.num.className="pn";
+    const pb=document.createElement("div");pb.className="pbtn";
+    const mk=(t,title,fn)=>{const b=document.createElement("button");b.textContent=t;b.title=title;b.onclick=e=>{e.stopPropagation();fn()};pb.appendChild(b)};
+    mk("↺","Xoay trái",()=>{it.rot=(it.rot+270)%360;paint(it)});
+    mk("↻","Xoay phải",()=>{it.rot=(it.rot+90)%360;paint(it)});
+    mk("←","Dời lên trước",()=>move(it,-1));
+    mk("→","Dời ra sau",()=>move(it,1));
+    mk("🗑","Xóa / khôi phục trang",()=>{it.man=!del(it);paint(it);info()});
+    pt.onclick=()=>preview(it);
+    c.append(pt,it.badge,it.num,pb);
+    c.ondragstart=e=>{ED.drag=it;e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","")};
+    c.ondragover=e=>{if(ED.drag&&ED.drag!==it){e.preventDefault();c.classList.add("over")}};
+    c.ondragleave=()=>c.classList.remove("over");
+    c.ondrop=e=>{
+      e.preventDefault();c.classList.remove("over");
+      const d=ED.drag;ED.drag=null;if(!d||d===it)return;
+      const from=ED.items.indexOf(d),to=ED.items.indexOf(it);
+      ED.items.splice(from,1);ED.items.splice(to,0,d);layout();
+    };
+    c.ondragend=()=>{ED.drag=null;$e("grid").querySelectorAll(".pc.over").forEach(x=>x.classList.remove("over"))};
+    it.el=c;ED.io.observe(c);
+  }
+  function move(it,d){
+    const i=ED.items.indexOf(it),j=i+d;if(j<0||j>=ED.items.length)return;
+    [ED.items[i],ED.items[j]]=[ED.items[j],ED.items[i]];layout();
+  }
+  function build(){ED.items.forEach(it=>{if(!it.el)mkCard(it);paint(it)});layout()}
+  function destroyDocs(from){ED.docs.slice(from).forEach(d=>{try{d&&d.destroy()}catch(e){}})}
+  async function load(bytes,name){
+    const gen=++ED.gen;
+    ED.q.length=0;ED.io.disconnect();$e("grid").textContent="";
+    destroyDocs(0);ED.docs=[];ED.src=[];ED.items=[];ED.cache={};ED.scan=null;
+    $e("out").style.display="none";$e("res").textContent="";$e("pb").style.width="0";
+    $e("go").disabled=$e("add").disabled=$e("reset").disabled=$e("prev").disabled=true;
+    info();
+    if(!bytes)return;
+    $e("info").textContent="Đang đọc file...";
     try{
-      const ext=extOf(f.name),buf=await f.arrayBuffer();
-      if(ext==="pdf"){
-        const bytes=new Uint8Array(buf),doc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
-        ED.src.push({name:f.name,bytes,kind:"pdf"});ED.docs.push(doc);const s2=ED.src.length-1;
-        for(let i=0;i<doc.numPages;i++){ED.items.push(edItem(s2,i,"pdf"));added++}
-      }else if(/^(jpe?g|png|webp)$/.test(ext)){
-        const bm=await createImageBitmap(new Blob([buf]),{imageOrientation:"from-image"});
-        ED.src.push({name:f.name,bytes:new Uint8Array(buf),kind:"img"});ED.docs.push(null);
-        ED.items.push(edItem(ED.src.length-1,0,"img",{bm}));added++;
-      }else throw new Error("chỉ hỗ trợ PDF hoặc ảnh JPG/PNG/WebP");
-    }catch(err){errs.push(f.name+": "+(err&&err.message||err))}
+      await ready;
+      const doc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
+      if(gen!==ED.gen){doc.destroy();return}
+      ED.src=[{name,bytes,kind:"pdf"}];ED.docs=[doc];
+      for(let i=0;i<doc.numPages;i++)ED.items.push(mkItem(0,i,"pdf"));
+      build();applyAuto();
+      $e("st").textContent="Sẵn sàng.";
+      $e("go").disabled=$e("add").disabled=$e("reset").disabled=false;$e("prev").disabled=false;
+    }catch(e){$e("info").textContent="";$e("st").innerHTML='<span class="er">'+(e&&e.message||e)+'</span>'}
   }
-  edBuild();
-  $("zst").innerHTML=(added?"Đã thêm "+added+" trang vào cuối danh sách. ":"")+(errs.length?'<span class="er">Không thêm được: '+errs.join(" • ")+'</span>':"");
-  if(added)ED.items[ED.items.length-1].el.scrollIntoView({block:"nearest"});
-};
-// --- xem lớn ---
-async function edPreview(it){
-  zmIdx=ED.items.indexOf(it);const tok=++zmTok;
-  $("zmodal").style.display="flex";
-  $("zmt").textContent="Trang "+(zmIdx+1)+" / "+ED.items.length+" — phím ← → để chuyển trang, Esc hoặc bấm để đóng";
-  let base;
-  if(it.kind==="img")base=it.bm;
-  else{
-    const pg=await ED.docs[it.src].getPage(it.page+1),v0=pg.getViewport({scale:1}),vp=pg.getViewport({scale:Math.min(1100/v0.width,2.2)});
-    const c=document.createElement("canvas");c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);
-    const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);
-    await pg.render({canvasContext:x,viewport:vp}).promise;pg.cleanup();base=c;
+  const scanKey=()=>ED.gen+"|"+($e("margin").checked?0.04:0);
+  function applyAuto(){
+    const lv=LV[+$e("sens").value];
+    $e("sv").textContent=$e("sens").value;$e("sn").textContent=lv.n;
+    const sc=ED.scan,ok=sc&&sc.key===scanKey(),rm=ok?new Set(splitPages(sc,+$e("sens").value).removed):new Set();
+    ED.items.forEach(it=>{if(it.src===0){it.auto=ok&&rm.has(it.page+1);paint(it)}});
+    $e("res").textContent=ok?rm.size+"/"+sc.hists.length+" trang của file gốc bị coi là trắng"+(rm.size?": "+fmtList([...rm]):""):"";
+    info();
   }
-  if(tok===zmTok)drawRot($("zmc"),base,it.rot);
+  $e("sens").oninput=applyAuto;$e("margin").onchange=applyAuto;
+  $e("stop").onclick=()=>{stop=true};
+  $e("prev").onclick=async()=>{
+    if(!ED.src.length||busy)return;
+    busy=true;stop=false;$e("prev").disabled=true;$e("stop").disabled=false;
+    try{
+      const key=scanKey();
+      if(!ED.scan||ED.scan.key!==key)ED.scan={key,...await scanDoc(ED.docs[0],ED.docs[0].numPages,$e("margin").checked?0.04:0,P+"pb",P+"st")};
+      applyAuto();
+      $e("st").textContent="Đã dò xong — trang trắng được tô đỏ, bấm 🗑 trên từng trang nếu muốn đổi ý.";
+    }catch(e){$e("st").innerHTML='<span class="er">'+(e&&e.message||e)+'</span>'}
+    finally{busy=false;$e("prev").disabled=false;$e("stop").disabled=true}
+  };
+  $e("reset").onclick=()=>{
+    if(!ED.src.length)return;
+    ED.items.forEach(it=>ED.io.unobserve(it.el));$e("grid").textContent="";
+    ED.items=[];for(let i=0;i<ED.docs[0].numPages;i++)ED.items.push(mkItem(0,i,"pdf"));
+    destroyDocs(1);ED.src.length=1;ED.docs.length=1;
+    build();applyAuto();$e("out").style.display="none";$e("st").textContent="Đã khôi phục về bản đầu.";
+  };
+  $e("add").onclick=()=>$e("file").click();
+  $e("file").onchange=async e=>{
+    const fs=[...e.target.files];e.target.value="";if(!ED.src.length||!fs.length)return;
+    const errs=[];let added=0;
+    for(const f of fs){
+      try{
+        const ext=extOf(f.name),buf=await f.arrayBuffer();
+        if(ext==="pdf"){
+          const bytes=new Uint8Array(buf),doc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
+          ED.src.push({name:f.name,bytes,kind:"pdf"});ED.docs.push(doc);const s2=ED.src.length-1;
+          for(let i=0;i<doc.numPages;i++){ED.items.push(mkItem(s2,i,"pdf"));added++}
+        }else if(/^(jpe?g|png|webp)$/.test(ext)){
+          const bm=await createImageBitmap(new Blob([buf]),{imageOrientation:"from-image"});
+          ED.src.push({name:f.name,bytes:new Uint8Array(buf),kind:"img"});ED.docs.push(null);
+          ED.items.push(mkItem(ED.src.length-1,0,"img",{bm}));added++;
+        }else throw new Error("chỉ hỗ trợ PDF hoặc ảnh JPG/PNG/WebP");
+      }catch(err){errs.push(f.name+": "+(err&&err.message||err))}
+    }
+    build();
+    $e("st").innerHTML=(added?"Đã thêm "+added+" trang vào cuối danh sách. ":"")+(errs.length?'<span class="er">Không thêm được: '+errs.join(" • ")+'</span>':"");
+    if(added)ED.items[ED.items.length-1].el.scrollIntoView({block:"nearest"});
+  };
+  // --- xem lớn ---
+  async function preview(it){
+    pvIdx=ED.items.indexOf(it);const tok=++pvTok;
+    $e("modal").style.display="flex";
+    $e("mt").textContent="Trang "+(pvIdx+1)+" / "+ED.items.length+" — phím ← → để chuyển trang, Esc hoặc bấm để đóng";
+    let base;
+    if(it.kind==="img")base=it.bm;
+    else{
+      const pg=await ED.docs[it.src].getPage(it.page+1),v0=pg.getViewport({scale:1}),vp=pg.getViewport({scale:Math.min(1100/v0.width,2.2)});
+      const c=document.createElement("canvas");c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);
+      const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);
+      await pg.render({canvasContext:x,viewport:vp}).promise;pg.cleanup();base=c;
+    }
+    if(tok===pvTok)drawRot($e("mc"),base,it.rot);
+  }
+  const closeM=()=>{$e("modal").style.display="none";pvTok++};
+  $e("modal").onclick=closeM;
+  document.addEventListener("keydown",e=>{
+    if($e("modal").style.display==="none")return;
+    if(e.key==="Escape")closeM();
+    else if(e.key==="ArrowRight"&&pvIdx<ED.items.length-1)preview(ED.items[pvIdx+1]);
+    else if(e.key==="ArrowLeft"&&pvIdx>0)preview(ED.items[pvIdx-1]);
+  });
+  // --- lưu file ---
+  $e("go").onclick=async()=>{
+    if(!ED.src.length||busy)return;
+    busy=true;$e("go").disabled=true;$e("out").style.display="none";$e("pb").style.width="0";
+    try{
+      const live=ED.items.filter(i=>!del(i));
+      if(!live.length)throw new Error("Không còn trang nào để lưu — hãy bỏ dấu xóa ở ít nhất một trang.");
+      $e("st").textContent="Đang nạp thư viện...";
+      const PL=await loadPdfLib(),out=await PL.PDFDocument.create({updateMetadata:false}),copied={};
+      // mỗi file nguồn chỉ sao chép một lần để giữ tài nguyên dùng chung (font, ảnh) — file không bị phình
+      for(let s2=0;s2<ED.src.length;s2++){
+        if(ED.src[s2].kind!=="pdf")continue;
+        const idx=[...new Set(live.filter(i=>i.src===s2).map(i=>i.page))].sort((a,b)=>a-b);if(!idx.length)continue;
+        $e("st").textContent="Đang xử lý "+ED.src[s2].name+"...";await tick();
+        const d=await PL.PDFDocument.load(ED.src[s2].bytes,{updateMetadata:false}),pgs=await out.copyPages(d,idx);
+        copied[s2]={};idx.forEach((k,j)=>copied[s2][k]=pgs[j]);
+      }
+      let n=0;
+      for(const it of live){
+        let pg;
+        if(it.kind==="img"){await addImageFile(out,ED.src[it.src].bytes,$("mimg").value);pg=out.getPage(out.getPageCount()-1)}
+        else{pg=copied[it.src][it.page];out.addPage(pg)}
+        if(it.rot)pg.setRotation(PL.degrees((((pg.getRotation().angle+it.rot)%360)+360)%360));
+        $e("pb").style.width=(++n/live.length*100)+"%";
+        if(n%20===0)await tick();
+      }
+      outBlob2=new Blob([await out.save()],{type:"application/pdf"});
+      const delN=ED.items.length-live.length,rotN=live.filter(i=>i.rot).length,addN2=live.filter(i=>i.src>0).length;
+      const main=live.filter(i=>i.src===0).map(i=>i.page),moved=main.some((v,i)=>i>0&&v<main[i-1]);
+      $e("sum").innerHTML='<span class="ok">Đã lưu '+live.length+' trang • '+fmt(ED.src[0].bytes.length)+' → '+fmt(outBlob2.size)+'</span>';
+      $e("det").textContent=[delN?"xóa "+delN+" trang":"",rotN?"xoay "+rotN+" trang":"",addN2?"thêm "+addN2+" trang từ file khác":"",moved?"đã sắp xếp lại thứ tự":""].filter(Boolean).join(" • ")||"Không có thay đổi nào so với bản đầu.";
+      $e("out").style.display="block";$e("st").textContent="Hoàn tất.";
+    }catch(e){$e("st").innerHTML='<span class="er">'+(e&&e.message||e)+'</span>'}
+    finally{busy=false;$e("go").disabled=!ED.src.length}
+  };
+  $e("dl").onclick=()=>{
+    if(!outBlob2)return;
+    if(outUrl)URL.revokeObjectURL(outUrl);outUrl=URL.createObjectURL(outBlob2);
+    const a=document.createElement("a");a.href=outUrl;a.download=ED.src[0].name.replace(/\.pdf$/i,"")+opt.suffix+".pdf";
+    document.body.appendChild(a);a.click();a.remove();
+  };
+  info();applyAuto();
+  return{load,loadFile:async f=>load(new Uint8Array(await f.arrayBuffer()),f.name)};
 }
-$("zmodal").onclick=()=>{$("zmodal").style.display="none";zmTok++};
-document.addEventListener("keydown",e=>{
-  if($("zmodal").style.display==="none")return;
-  if(e.key==="Escape"){$("zmodal").style.display="none";zmTok++}
-  else if(e.key==="ArrowRight"&&zmIdx<ED.items.length-1)edPreview(ED.items[zmIdx+1]);
-  else if(e.key==="ArrowLeft"&&zmIdx>0)edPreview(ED.items[zmIdx-1]);
-});
-// --- lưu file ---
-$("zgo").onclick=async()=>{
-  if(!ED.src.length||busy)return;
-  busy=true;$("zgo").disabled=true;$("zout").style.display="none";$("zpb").style.width="0";
-  try{
-    const live=ED.items.filter(i=>!edDel(i));
-    if(!live.length)throw new Error("Không còn trang nào để lưu — hãy bỏ dấu xóa ở ít nhất một trang.");
-    $("zst").textContent="Đang nạp thư viện...";
-    const PL=await loadPdfLib(),out=await PL.PDFDocument.create({updateMetadata:false}),copied={};
-    // mỗi file nguồn chỉ sao chép một lần để giữ tài nguyên dùng chung (font, ảnh) — file không bị phình
-    for(let s2=0;s2<ED.src.length;s2++){
-      if(ED.src[s2].kind!=="pdf")continue;
-      const idx=[...new Set(live.filter(i=>i.src===s2).map(i=>i.page))].sort((a,b)=>a-b);if(!idx.length)continue;
-      $("zst").textContent="Đang xử lý "+ED.src[s2].name+"...";await tick();
-      const d=await PL.PDFDocument.load(ED.src[s2].bytes,{updateMetadata:false}),pgs=await out.copyPages(d,idx);
-      copied[s2]={};idx.forEach((k,j)=>copied[s2][k]=pgs[j]);
-    }
-    let n=0;
-    for(const it of live){
-      let pg;
-      if(it.kind==="img"){await addImageFile(out,ED.src[it.src].bytes,$("mimg").value);pg=out.getPage(out.getPageCount()-1)}
-      else{pg=copied[it.src][it.page];out.addPage(pg)}
-      if(it.rot)pg.setRotation(PL.degrees((((pg.getRotation().angle+it.rot)%360)+360)%360));
-      $("zpb").style.width=(++n/live.length*100)+"%";
-      if(n%20===0)await tick();
-    }
-    zBlob=new Blob([await out.save()],{type:"application/pdf"});
-    const delN=ED.items.length-live.length,rotN=live.filter(i=>i.rot).length,addN2=live.filter(i=>i.src>0).length;
-    const main=live.filter(i=>i.src===0).map(i=>i.page),moved=main.some((v,i)=>i>0&&v<main[i-1]);
-    $("zsum").innerHTML='<span class="ok">Đã lưu '+live.length+' trang • '+fmt(pdfFile.size)+' → '+fmt(zBlob.size)+'</span>';
-    $("zdet").textContent=[delN?"xóa "+delN+" trang":"",rotN?"xoay "+rotN+" trang":"",addN2?"thêm "+addN2+" trang từ file khác":"",moved?"đã sắp xếp lại thứ tự":""].filter(Boolean).join(" • ")||"Không có thay đổi nào so với file gốc.";
-    $("zout").style.display="block";$("zst").textContent="Hoàn tất.";
-  }catch(e){$("zst").innerHTML='<span class="er">'+(e&&e.message||e)+'</span>'}
-  finally{busy=false;$("zgo").disabled=!ED.src.length}
-};
-$("zdl").onclick=()=>{
-  if(!zBlob)return;
-  if(zUrl)URL.revokeObjectURL(zUrl);zUrl=URL.createObjectURL(zBlob);
-  const a=document.createElement("a");a.href=zUrl;a.download=pdfFile.name.replace(/\.pdf$/i,"")+"_chinh-sua.pdf";
-  document.body.appendChild(a);a.click();a.remove();
-};
+const EZ=createEditor("z",{suffix:"_chinh-sua"});
 
 // ================= TAB GỘP FILE =================
 // --- đọc zip (docx/xlsx) bằng DecompressionStream của trình duyệt ---
@@ -1235,7 +1273,7 @@ async function addSink(out,sink){
 }
 
 // --- Giao diện danh sách file ---
-const mfiles=[];let mBlob=null,mUrl=null;
+const mfiles=[];const escH=t=>String(t).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const EXT_IMG=/^(jpe?g|png|webp|gif|bmp|avif)$/;
 const extOf=n=>(n.split(".").pop()||"").toLowerCase();
 const kindOf=n=>{const e=extOf(n);return e==="pdf"?"PDF":e==="docx"?"Word":/^(xlsx|xlsm)$/.test(e)?"Excel":e==="csv"?"CSV":EXT_IMG.test(e)?"Ảnh":/^(doc|xls)$/.test(e)?"Cũ":"?"};
@@ -1253,18 +1291,18 @@ function renderM(){
   $("mgo").disabled=!mfiles.length;
   $("mst").textContent=mfiles.length?mfiles.length+" file trong danh sách.":"Thêm file để bắt đầu.";
 }
-function addM(list){for(const f of list)mfiles.push({file:f});$("mres").style.display="none";renderM()}
+function addM(list){for(const f of list)mfiles.push({file:f});renderM()}
 const md=$("mdrop");
 md.onclick=()=>$("mfile").click();
 md.ondragover=e=>{e.preventDefault();md.classList.add("over")};
 md.ondragleave=()=>md.classList.remove("over");
 md.ondrop=e=>{e.preventDefault();md.classList.remove("over");addM(e.dataTransfer.files)};
 $("mfile").onchange=e=>{addM(e.target.files);e.target.value=""};
-$("mclear").onclick=()=>{if(busy)return;mfiles.length=0;$("mres").style.display="none";$("mpb").style.width="0";renderM()};
+$("mclear").onclick=()=>{if(busy)return;mfiles.length=0;$("mpb").style.width="0";renderM()};
 $("mstop").onclick=()=>{stop=true};
 $("mgo").onclick=async()=>{
   if(busy||!mfiles.length)return;
-  busy=true;stop=false;$("mgo").disabled=true;$("mstop").disabled=false;$("mres").style.display="none";$("mpb").style.width="0";
+  busy=true;stop=false;$("mgo").disabled=true;$("mstop").disabled=false;$("mpb").style.width="0";
   const errs=[];
   try{
     $("mst").textContent="Đang nạp thư viện...";
@@ -1291,19 +1329,18 @@ $("mgo").onclick=async()=>{
       $("mpb").style.width=((i+1)/mfiles.length*100)+"%";
     }
     if(!out.getPageCount())throw new Error("Không tạo được trang nào."+(errs.length?" "+errs[0]:""));
-    mBlob=new Blob([await out.save()],{type:"application/pdf"});
-    $("msum").innerHTML='<span class="ok">Đã gộp '+(mfiles.length-errs.length)+'/'+mfiles.length+' file thành 1 PDF ('+out.getPageCount()+' trang, '+fmt(mBlob.size)+')</span>';
-    $("mdet").textContent=errs.length?"Bỏ qua: "+errs.join(" • "):"";
-    $("mres").style.display="block";$("mst").textContent="Hoàn tất.";
+    const bytes=await out.save();
+    $("mst").textContent="Đang dựng bản xem trước...";
+    $("gwrap").style.display="block";
+    await EG.load(new Uint8Array(bytes),"gop-file.pdf");
+    $("mst").innerHTML='<span class="ok">Đã gộp '+(mfiles.length-errs.length)+'/'+mfiles.length+' file ('+out.getPageCount()+' trang, '+fmt(bytes.length)+'). Hãy xem trước và chỉnh sửa bên dưới, rồi bấm “Xuất file PDF”.</span>'+(errs.length?'<br>Bỏ qua: '+escH(errs.join(" • ")):"");
+    $("gwrap").scrollIntoView({behavior:"smooth",block:"start"});
   }catch(e){$("mst").innerHTML='<span class="er">'+(e&&e.message||e)+'</span>'}
   finally{busy=false;$("mgo").disabled=!mfiles.length;$("mstop").disabled=true}
 };
-$("mdl").onclick=()=>{
-  if(!mBlob)return;
-  if(mUrl)URL.revokeObjectURL(mUrl);mUrl=URL.createObjectURL(mBlob);
-  const a=document.createElement("a");a.href=mUrl;a.download="gop-file.pdf";document.body.appendChild(a);a.click();a.remove();
-};
 renderM();
+const EG=createEditor("g",{suffix:""});
+
 })();
 </script>
 </body>
