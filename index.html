@@ -87,16 +87,6 @@ code{background:var(--bg);padding:1px 5px;border-radius:4px}
     <div class="row"><label>Chất lượng JPEG: <b id="qv">60</b>%</label>
       <input id="q" type="range" min="10" max="95" step="5" value="60"></div>
     <div class="row"><label><input id="gray" type="checkbox"> Chuyển sang đen trắng (xám)</label></div>
-    <div class="row"><label><input id="blank" type="checkbox"> Tự động xóa trang trắng</label></div>
-    <div id="bopt" style="display:none">
-      <div class="row"><label>Độ nhạy: <b id="sv">3</b>/5</label>
-        <input id="sens" type="range" min="1" max="5" step="1" value="3"></div>
-      <div class="mut" id="sn" style="margin:-4px 0 8px"></div>
-      <div class="row"><label><input id="margin" type="checkbox" checked> Bỏ qua lề 4% khi dò</label>
-        <button id="prev" disabled>Dò trước</button></div>
-      <div class="mut" id="bres"></div>
-      <details class="mut" id="bdet" style="display:none"><summary>Tỷ lệ nét mực từng trang</summary><div id="bl"></div></details>
-    </div>
     <div class="row">
       <button class="p" id="go" disabled>Nén PDF</button>
       <button id="stop" disabled>Dừng</button>
@@ -109,6 +99,28 @@ code{background:var(--bg);padding:1px 5px;border-radius:4px}
     <div class="big" id="sum"></div>
     <div class="mut" id="det"></div>
     <div class="row"><button class="p" id="dl">Tải file đã nén</button></div>
+  </div>
+
+  <div class="card">
+    <div class="row"><b>Xem trước và sửa trang trước khi nén</b>
+      <button id="creset" disabled>Khôi phục ban đầu</button></div>
+    <div class="mut" id="cinfo">Chưa có trang nào.</div>
+    <div class="row" style="margin-top:12px"><b>Tự động đánh dấu trang trắng</b></div>
+    <div class="row"><label>Độ nhạy: <b id="csv">3</b>/5</label>
+      <input id="csens" type="range" min="1" max="5" step="1" value="3"></div>
+    <div class="mut" id="csn" style="margin:-4px 0 8px"></div>
+    <div class="row"><label><input id="cmargin" type="checkbox" checked> Bỏ qua lề 4% khi dò</label>
+      <button id="cprev" disabled>Dò trang trắng</button>
+      <button id="cstop" disabled>Dừng</button></div>
+    <div class="mut" id="cres"></div>
+  </div>
+  <div class="card">
+    <div class="mut">Bấm vào ảnh để xem lớn • kéo thả thẻ trang để đổi thứ tự (hoặc dùng nút ← →) • ↺ ↻ xoay trang • 🗑 xóa / khôi phục trang. Nén PDF sẽ áp dụng đúng thứ tự, góc xoay và các trang bạn đã chọn ở đây.</div>
+    <div class="pgrid" id="cgrid"></div>
+  </div>
+  <div id="cmodal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:50;align-items:center;justify-content:center;flex-direction:column;cursor:zoom-out">
+    <canvas id="cmc" style="max-width:94vw;max-height:86vh;background:#fff"></canvas>
+    <div id="cmt" style="color:#fff;margin-top:8px;font-size:13px"></div>
   </div>
 
   <p class="mut">Lưu ý: mỗi trang được vẽ lại bằng canvas thành ảnh JPEG nên văn bản sẽ không còn bôi chọn/tìm kiếm được. Phù hợp với file scan, ảnh, slide.</p>
@@ -284,7 +296,7 @@ const ready=(async()=>{
 })();
 const useWorker=()=>{};
 $("st").textContent="Đang nạp thư viện...";
-ready.then(()=>{$("st").textContent="Chọn file để bắt đầu.";if(pdfFile){$("go").disabled=false;$("prev").disabled=false;$("sprev").disabled=false}})
+ready.then(()=>{$("st").textContent="Chọn file để bắt đầu.";if(pdfFile){$("go").disabled=false;$("sprev").disabled=false}})
      .catch(e=>{$("st").innerHTML='<span class="er">Không nạp được pdf.js: '+(e&&e.message||e)+'</span>'});
 
 // --- UI ---
@@ -314,22 +326,13 @@ const LV=[null,
  {t:160,r:6e-3,n:"Cao — bỏ qua cả vài nét/chữ rất nhỏ"},
  {t:130,r:1.5e-2,n:"Rất cao — xóa cả trang chỉ có số trang hoặc dòng đầu trang"}];
 const fmtList=a=>{const o=[];for(let i=0;i<a.length;){let j=i;while(j+1<a.length&&a[j+1]===a[j]+1)j++;o.push(j>i?a[i]+"–"+a[j]:""+a[i]);i=j+1}return o.join(", ")};
-const margin=()=>$({split:"smargin",blank:"zmargin"}[curTab]||"margin").checked?0.04:0;
+const margin=()=>$("smargin").checked?0.04:0;
 const keyOf=()=>pdfFile?pdfFile.name+"|"+pdfFile.size+"|"+pdfFile.lastModified+"|"+margin():"";
 const inkOf=(h,t,lv)=>{let c=0;for(let g=0;g<lv.t;g++)c+=h[g];return c/t};
 function splitPages(sc,lvl){
-  const lv=LV[lvl||+$("sens").value],keep=[],removed=[];
+  const lv=LV[lvl],keep=[],removed=[];
   sc.hists.forEach((h,k)=>(inkOf(h,sc.totals[k],lv)<=lv.r?removed:keep).push(k+1));
   return{keep,removed};
-}
-function showBlank(){
-  const lv=LV[+$("sens").value];
-  $("sv").textContent=$("sens").value;$("sn").textContent=lv.n;
-  if(!scan||scan.key!==keyOf()){$("bres").textContent="";$("bdet").style.display="none";return}
-  const r=splitPages(scan);
-  $("bres").innerHTML="<b>"+r.removed.length+"</b>/"+scan.hists.length+" trang bị coi là trắng"+(r.removed.length?": "+fmtList(r.removed):"");
-  $("bl").textContent=scan.hists.map((h,k)=>"Tr."+(k+1)+": "+(inkOf(h,scan.totals[k],lv)*100).toFixed(3)+"%").join("  •  ");
-  $("bdet").style.display="block";
 }
 async function scanDoc(doc,total,m,pbId,stId){
   const hists=[],totals=[];
@@ -358,26 +361,10 @@ async function getScan(doc,total,pbId="pb",stId="st"){
   if(scan&&scan.key===key)return scan;
   return scan={key,...await scanDoc(doc,total,m,pbId,stId)};
 }
-$("blank").onchange=()=>{$("bopt").style.display=$("blank").checked?"block":"none";showBlank()};
-$("sens").oninput=showBlank;
-$("margin").onchange=showBlank;
-showBlank();
-$("prev").onclick=async()=>{
-  if(!pdfFile||busy||!pdfjsLib)return;
-  busy=true;stop=false;$("go").disabled=$("prev").disabled=true;$("stop").disabled=false;
-  let doc;
-  try{
-    await ready;
-    doc=await pdfjsLib.getDocument({data:await pdfFile.arrayBuffer()}).promise;
-    await getScan(doc,doc.numPages);showBlank();$("st").textContent="Đã dò xong — kéo thanh độ nhạy để xem kết quả.";
-  }catch(e){$("st").innerHTML='<span class="er">'+(e&&e.message||e)+'</span>'}
-  finally{if(doc)doc.destroy();busy=false;$("go").disabled=!pdfFile;$("prev").disabled=false;$("stop").disabled=true}
-};
-
 function setFile(f){
   if(!f)return;
   if(f.type!=="application/pdf"&&!/\.pdf$/i.test(f.name)){$("st").textContent="Vui lòng chọn file PDF.";return}
-  pdfFile=f;outBlob=null;scan=null;showBlank();$("sgo").disabled=false;$("sprev").disabled=!pdfjsLib;showSBlank();EZ.loadFile(f);$("sres").style.display="none";$("sst").textContent="Sẵn sàng.";$("spb").style.width="0";$("prev").disabled=!pdfjsLib;$("res").style.display="none";
+  pdfFile=f;outBlob=null;scan=null;EC.loadFile(f);$("sgo").disabled=false;$("sprev").disabled=!pdfjsLib;showSBlank();EZ.loadFile(f);$("sres").style.display="none";$("sst").textContent="Sẵn sàng.";$("spb").style.width="0";$("res").style.display="none";
   $("info").textContent=f.name+" — "+fmt(f.size);
   $("go").disabled=!pdfjsLib;
   $("st").textContent="Sẵn sàng.";$("pb").style.width="0";
@@ -416,19 +403,15 @@ $("go").onclick=async()=>{
   busy=true;stop=false;outBlob=null;
   $("go").disabled=true;$("stop").disabled=false;$("res").style.display="none";
   const dpi=+$("dpi").value,q=+$("q").value/100,gray=$("gray").checked;
-  let doc;
   try{
     $("st").textContent="Đang đọc file...";
-    await ready;useWorker();
-    doc=await pdfjsLib.getDocument({data:await pdfFile.arrayBuffer()}).promise;
-    const pages=[],total=doc.numPages,t0=performance.now();
-    let keep=Array.from({length:total},(_,k)=>k+1),removed=[];
-    if($("blank").checked){
-      const r=splitPages(await getScan(doc,total));keep=r.keep;removed=r.removed;
-      if(!keep.length)throw new Error("Tất cả các trang đều bị coi là trắng — hãy giảm độ nhạy.");
-    }
-    for(let n=0;n<keep.length;n++){
-      const i=keep[n];
+    await ready;await EC.loaded();
+    const doc=EC.doc(),live=EC.live(),total=EC.total();
+    if(!doc)throw new Error("Chưa đọc được file PDF.");
+    if(!live.length)throw new Error("Không còn trang nào để nén — hãy bỏ dấu xóa ở ít nhất một trang.");
+    const pages=[],t0=performance.now();
+    for(let n=0;n<live.length;n++){
+      const i=live[n].page+1,rot=live[n].rot;
       if(stop)throw new Error("Đã dừng.");
       const pg=await doc.getPage(i);
       const base=pg.getViewport({scale:1});
@@ -447,11 +430,13 @@ $("go").onclick=async()=>{
         for(let k=0;k<d.length;k+=4){const g=(d[k]*0.299+d[k+1]*0.587+d[k+2]*0.114)|0;d[k]=d[k+1]=d[k+2]=g}
         ctx.putImageData(im,0,0);
       }
-      const jpg=await toJpeg(cv,q);
-      pages.push({w:cv.width,h:cv.height,pw:base.width,ph:base.height,jpg});
-      cv.width=cv.height=0;pg.cleanup();
-      $("pb").style.width=((n+1)/keep.length*100)+"%";
-      $("st").textContent=`Đang xử lý trang ${n+1}/${keep.length} (trang gốc ${i})...`;
+      let oc=cv;
+      if(rot){oc=document.createElement("canvas");drawRot(oc,cv,rot);cv.width=cv.height=0} // xoay theo chỉnh sửa
+      const jpg=await toJpeg(oc,q),sw=rot%180!==0;
+      pages.push({w:oc.width,h:oc.height,pw:sw?base.height:base.width,ph:sw?base.width:base.height,jpg});
+      oc.width=oc.height=0;pg.cleanup();
+      $("pb").style.width=((n+1)/live.length*100)+"%";
+      $("st").textContent=`Đang xử lý trang ${n+1}/${live.length} (trang gốc ${i})...`;
       await new Promise(r=>setTimeout(r));
     }
     outBlob=buildPdf(pages);
@@ -459,13 +444,13 @@ $("go").onclick=async()=>{
     $("sum").innerHTML=b<a
       ?`<span class="ok">${fmt(a)} → ${fmt(b)} (giảm ${pct.toFixed(0)}%)</span>`
       :`<span class="er">${fmt(a)} → ${fmt(b)} (lớn hơn bản gốc)</span>`;
-    $("det").textContent=`${pages.length}/${total} trang${removed.length?" (đã xóa trang trắng: "+fmtList(removed)+")":""} • ${dpi} DPI • JPEG ${Math.round(q*100)}% • ${((performance.now()-t0)/1000).toFixed(1)} giây`+(b>=a?" — hãy giảm DPI/chất lượng hoặc giữ file gốc.":"");
+    const delN=total-live.length,rotN=live.filter(l=>l.rot).length,moved=live.some((l,k)=>k>0&&l.page<live[k-1].page);
+    $("det").textContent=`${pages.length}/${total} trang`+(delN?` (đã xóa ${delN} trang)`:"")+(rotN?` • xoay ${rotN} trang`:"")+(moved?" • đã sắp xếp lại":"")+` • ${dpi} DPI • JPEG ${Math.round(q*100)}% • ${((performance.now()-t0)/1000).toFixed(1)} giây`+(b>=a?" — hãy giảm DPI/chất lượng hoặc giữ file gốc.":"");
     $("res").style.display="block";$("st").textContent="Hoàn tất.";
   }catch(e){
     $("st").innerHTML='<span class="er">'+(e&&e.message||e)+'</span>';
   }finally{
-    if(doc)doc.destroy();
-    busy=false;$("go").disabled=false;$("prev").disabled=false;$("stop").disabled=true;
+    busy=false;$("go").disabled=false;$("stop").disabled=true;
   }
 };
 
@@ -537,7 +522,7 @@ $("sstop").onclick=()=>{stop=true};
 $("sgo").onclick=async()=>{
   if(!pdfFile||busy)return;
   busy=true;stop=false;
-  $("sgo").disabled=$("go").disabled=$("prev").disabled=$("sprev").disabled=true;$("sstop").disabled=false;$("sres").style.display="none";
+  $("sgo").disabled=$("go").disabled=$("sprev").disabled=true;$("sstop").disabled=false;$("sres").style.display="none";
   surls.forEach(u=>URL.revokeObjectURL(u));surls=[];sparts=[];
   const mode=document.querySelector("[name=sm]:checked").value,over=[];let note="";
   try{
@@ -621,7 +606,7 @@ $("sgo").onclick=async()=>{
   }catch(e){
     $("sst").innerHTML='<span class="er">'+(e&&e.message||e)+'</span>';
   }finally{
-    busy=false;$("sgo").disabled=false;$("go").disabled=!pdfjsLib;$("prev").disabled=!pdfjsLib;$("sprev").disabled=!pdfjsLib;$("sstop").disabled=true;
+    busy=false;$("sgo").disabled=false;$("go").disabled=!pdfjsLib;$("sprev").disabled=!pdfjsLib;$("sstop").disabled=true;
   }
 };
 $("szip").onclick=()=>{
@@ -660,7 +645,7 @@ function drawRot(dst,src,rot){
   c.save();c.translate(w2/2,h2/2);c.rotate(rot*Math.PI/180);c.drawImage(src,-sw/2,-sh/2);c.restore();
 }
 function createEditor(P,opt){
-  const $e=x=>$(P+x);
+  const DUMMY=document.createElement("div"),$e=x=>$(P+x)||DUMMY,PB=opt.pb||P+"pb",ST=opt.st||P+"st";
   const ED={gen:0,src:[],docs:[],items:[],drag:null,q:[],run:false,cache:{},io:null,scan:null};
   let outBlob2=null,outUrl=null,pvTok=0,pvIdx=-1;
   const del=it=>it.man!==undefined?it.man:it.auto;
@@ -739,11 +724,11 @@ function createEditor(P,opt){
   }
   function build(){ED.items.forEach(it=>{if(!it.el)mkCard(it);paint(it)});layout()}
   function destroyDocs(from){ED.docs.slice(from).forEach(d=>{try{d&&d.destroy()}catch(e){}})}
-  async function load(bytes,name){
+  async function loadInner(bytes,name){
     const gen=++ED.gen;
     ED.q.length=0;ED.io.disconnect();$e("grid").textContent="";
     destroyDocs(0);ED.docs=[];ED.src=[];ED.items=[];ED.cache={};ED.scan=null;
-    $e("out").style.display="none";$e("res").textContent="";$e("pb").style.width="0";
+    $e("out").style.display="none";$e("res").textContent="";$(PB).style.width="0";
     $e("go").disabled=$e("add").disabled=$e("reset").disabled=$e("prev").disabled=true;
     info();
     if(!bytes)return;
@@ -755,9 +740,9 @@ function createEditor(P,opt){
       ED.src=[{name,bytes,kind:"pdf"}];ED.docs=[doc];
       for(let i=0;i<doc.numPages;i++)ED.items.push(mkItem(0,i,"pdf"));
       build();applyAuto();
-      $e("st").textContent="Sẵn sàng.";
+      $(ST).textContent="Sẵn sàng.";
       $e("go").disabled=$e("add").disabled=$e("reset").disabled=false;$e("prev").disabled=false;
-    }catch(e){$e("info").textContent="";$e("st").innerHTML='<span class="er">'+(e&&e.message||e)+'</span>'}
+    }catch(e){$e("info").textContent="";$(ST).innerHTML='<span class="er">'+(e&&e.message||e)+'</span>'}
   }
   const scanKey=()=>ED.gen+"|"+($e("margin").checked?0.04:0);
   function applyAuto(){
@@ -775,10 +760,10 @@ function createEditor(P,opt){
     busy=true;stop=false;$e("prev").disabled=true;$e("stop").disabled=false;
     try{
       const key=scanKey();
-      if(!ED.scan||ED.scan.key!==key)ED.scan={key,...await scanDoc(ED.docs[0],ED.docs[0].numPages,$e("margin").checked?0.04:0,P+"pb",P+"st")};
+      if(!ED.scan||ED.scan.key!==key)ED.scan={key,...await scanDoc(ED.docs[0],ED.docs[0].numPages,$e("margin").checked?0.04:0,PB,ST)};
       applyAuto();
-      $e("st").textContent="Đã dò xong — trang trắng được tô đỏ, bấm 🗑 trên từng trang nếu muốn đổi ý.";
-    }catch(e){$e("st").innerHTML='<span class="er">'+(e&&e.message||e)+'</span>'}
+      $(ST).textContent="Đã dò xong — trang trắng được tô đỏ, bấm 🗑 trên từng trang nếu muốn đổi ý.";
+    }catch(e){$(ST).innerHTML='<span class="er">'+(e&&e.message||e)+'</span>'}
     finally{busy=false;$e("prev").disabled=false;$e("stop").disabled=true}
   };
   $e("reset").onclick=()=>{
@@ -786,7 +771,7 @@ function createEditor(P,opt){
     ED.items.forEach(it=>ED.io.unobserve(it.el));$e("grid").textContent="";
     ED.items=[];for(let i=0;i<ED.docs[0].numPages;i++)ED.items.push(mkItem(0,i,"pdf"));
     destroyDocs(1);ED.src.length=1;ED.docs.length=1;
-    build();applyAuto();$e("out").style.display="none";$e("st").textContent="Đã khôi phục về bản đầu.";
+    build();applyAuto();$e("out").style.display="none";$(ST).textContent="Đã khôi phục về bản đầu.";
   };
   $e("add").onclick=()=>$e("file").click();
   $e("file").onchange=async e=>{
@@ -807,7 +792,7 @@ function createEditor(P,opt){
       }catch(err){errs.push(f.name+": "+(err&&err.message||err))}
     }
     build();
-    $e("st").innerHTML=(added?"Đã thêm "+added+" trang vào cuối danh sách. ":"")+(errs.length?'<span class="er">Không thêm được: '+errs.join(" • ")+'</span>':"");
+    $(ST).innerHTML=(added?"Đã thêm "+added+" trang vào cuối danh sách. ":"")+(errs.length?'<span class="er">Không thêm được: '+errs.join(" • ")+'</span>':"");
     if(added)ED.items[ED.items.length-1].el.scrollIntoView({block:"nearest"});
   };
   // --- xem lớn ---
@@ -836,17 +821,17 @@ function createEditor(P,opt){
   // --- lưu file ---
   $e("go").onclick=async()=>{
     if(!ED.src.length||busy)return;
-    busy=true;$e("go").disabled=true;$e("out").style.display="none";$e("pb").style.width="0";
+    busy=true;$e("go").disabled=true;$e("out").style.display="none";$(PB).style.width="0";
     try{
       const live=ED.items.filter(i=>!del(i));
       if(!live.length)throw new Error("Không còn trang nào để lưu — hãy bỏ dấu xóa ở ít nhất một trang.");
-      $e("st").textContent="Đang nạp thư viện...";
+      $(ST).textContent="Đang nạp thư viện...";
       const PL=await loadPdfLib(),out=await PL.PDFDocument.create({updateMetadata:false}),copied={};
       // mỗi file nguồn chỉ sao chép một lần để giữ tài nguyên dùng chung (font, ảnh) — file không bị phình
       for(let s2=0;s2<ED.src.length;s2++){
         if(ED.src[s2].kind!=="pdf")continue;
         const idx=[...new Set(live.filter(i=>i.src===s2).map(i=>i.page))].sort((a,b)=>a-b);if(!idx.length)continue;
-        $e("st").textContent="Đang xử lý "+ED.src[s2].name+"...";await tick();
+        $(ST).textContent="Đang xử lý "+ED.src[s2].name+"...";await tick();
         const d=await PL.PDFDocument.load(ED.src[s2].bytes,{updateMetadata:false}),pgs=await out.copyPages(d,idx);
         copied[s2]={};idx.forEach((k,j)=>copied[s2][k]=pgs[j]);
       }
@@ -856,7 +841,7 @@ function createEditor(P,opt){
         if(it.kind==="img"){await addImageFile(out,ED.src[it.src].bytes,$("mimg").value);pg=out.getPage(out.getPageCount()-1)}
         else{pg=copied[it.src][it.page];out.addPage(pg)}
         if(it.rot)pg.setRotation(PL.degrees((((pg.getRotation().angle+it.rot)%360)+360)%360));
-        $e("pb").style.width=(++n/live.length*100)+"%";
+        $(PB).style.width=(++n/live.length*100)+"%";
         if(n%20===0)await tick();
       }
       outBlob2=new Blob([await out.save()],{type:"application/pdf"});
@@ -864,8 +849,8 @@ function createEditor(P,opt){
       const main=live.filter(i=>i.src===0).map(i=>i.page),moved=main.some((v,i)=>i>0&&v<main[i-1]);
       $e("sum").innerHTML='<span class="ok">Đã lưu '+live.length+' trang • '+fmt(ED.src[0].bytes.length)+' → '+fmt(outBlob2.size)+'</span>';
       $e("det").textContent=[delN?"xóa "+delN+" trang":"",rotN?"xoay "+rotN+" trang":"",addN2?"thêm "+addN2+" trang từ file khác":"",moved?"đã sắp xếp lại thứ tự":""].filter(Boolean).join(" • ")||"Không có thay đổi nào so với bản đầu.";
-      $e("out").style.display="block";$e("st").textContent="Hoàn tất.";
-    }catch(e){$e("st").innerHTML='<span class="er">'+(e&&e.message||e)+'</span>'}
+      $e("out").style.display="block";$(ST).textContent="Hoàn tất.";
+    }catch(e){$(ST).innerHTML='<span class="er">'+(e&&e.message||e)+'</span>'}
     finally{busy=false;$e("go").disabled=!ED.src.length}
   };
   $e("dl").onclick=()=>{
@@ -875,9 +860,16 @@ function createEditor(P,opt){
     document.body.appendChild(a);a.click();a.remove();
   };
   info();applyAuto();
-  return{load,loadFile:async f=>load(new Uint8Array(await f.arrayBuffer()),f.name)};
+  let loadP=Promise.resolve();
+  return{
+    load:(b,n)=>(loadP=loadInner(b,n)),
+    loadFile:f=>(loadP=(async()=>loadInner(new Uint8Array(await f.arrayBuffer()),f.name))()),
+    loaded:()=>loadP,doc:()=>ED.docs[0],total:()=>ED.items.length,
+    live:()=>ED.items.filter(it=>!del(it)).map(it=>({page:it.page,rot:it.rot}))
+  };
 }
 const EZ=createEditor("z",{suffix:"_chinh-sua"});
+const EC=createEditor("c",{suffix:"",pb:"pb",st:"st"});
 
 // ================= TAB GỘP FILE =================
 // --- đọc zip (docx/xlsx) bằng DecompressionStream của trình duyệt ---
