@@ -77,6 +77,19 @@ code{background:var(--bg);padding:1px 5px;border-radius:4px}
 
   <div id="pane-compress">
   <div class="card">
+    <div class="row"><b>Xem trước và sửa trang trước khi nén</b>
+      <button id="creset" disabled>Khôi phục ban đầu</button></div>
+    <div class="mut" id="cinfo">Chưa có trang nào.</div>
+    <div class="row" style="margin-top:12px"><b>Tự động đánh dấu trang trắng</b></div>
+    <div class="row"><label>Độ nhạy: <b id="csv">3</b>/5</label>
+      <input id="csens" type="range" min="1" max="5" step="1" value="3"></div>
+    <div class="mut" id="csn" style="margin:-4px 0 8px"></div>
+    <div class="row"><label><input id="cmargin" type="checkbox" checked> Bỏ qua lề 4% khi dò</label>
+      <button id="cprev" disabled>Dò trang trắng</button>
+      <button id="cstop" disabled>Dừng</button></div>
+    <div class="mut" id="cres"></div>
+  </div>
+  <div class="card">
     <div class="row">
       <button data-p="150,0.75">Nhẹ</button>
       <button data-p="110,0.6">Cân bằng</button>
@@ -101,19 +114,6 @@ code{background:var(--bg);padding:1px 5px;border-radius:4px}
     <div class="row"><button class="p" id="dl">Tải file đã nén</button></div>
   </div>
 
-  <div class="card">
-    <div class="row"><b>Xem trước và sửa trang trước khi nén</b>
-      <button id="creset" disabled>Khôi phục ban đầu</button></div>
-    <div class="mut" id="cinfo">Chưa có trang nào.</div>
-    <div class="row" style="margin-top:12px"><b>Tự động đánh dấu trang trắng</b></div>
-    <div class="row"><label>Độ nhạy: <b id="csv">3</b>/5</label>
-      <input id="csens" type="range" min="1" max="5" step="1" value="3"></div>
-    <div class="mut" id="csn" style="margin:-4px 0 8px"></div>
-    <div class="row"><label><input id="cmargin" type="checkbox" checked> Bỏ qua lề 4% khi dò</label>
-      <button id="cprev" disabled>Dò trang trắng</button>
-      <button id="cstop" disabled>Dừng</button></div>
-    <div class="mut" id="cres"></div>
-  </div>
   <div class="card">
     <div class="mut">Bấm vào ảnh để xem lớn • kéo thả thẻ trang để đổi thứ tự (hoặc dùng nút ← →) • ↺ ↻ xoay trang • 🗑 xóa / khôi phục trang. Nén PDF sẽ áp dụng đúng thứ tự, góc xoay và các trang bạn đã chọn ở đây.</div>
     <div class="pgrid" id="cgrid"></div>
