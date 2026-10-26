@@ -95,10 +95,10 @@ code{background:var(--bg);padding:1px 5px;border-radius:4px}
       <button data-p="110,0.6">Cân bằng</button>
       <button data-p="80,0.45">Nén mạnh</button>
     </div>
-    <div class="row"><label>Độ phân giải: <b id="dv">110</b> DPI</label>
-      <input id="dpi" type="range" min="50" max="220" step="5" value="110"></div>
-    <div class="row"><label>Chất lượng JPEG: <b id="qv">60</b>%</label>
-      <input id="q" type="range" min="10" max="95" step="5" value="60"></div>
+    <div class="row"><label>Độ phân giải: <b id="dv">150</b> DPI</label>
+      <input id="dpi" type="range" min="50" max="220" step="5" value="150"></div>
+    <div class="row"><label>Chất lượng JPEG: <b id="qv">75</b>%</label>
+      <input id="q" type="range" min="10" max="95" step="5" value="75"></div>
     <div class="row"><label><input id="gray" type="checkbox"> Chuyển sang đen trắng (xám)</label></div>
     <div class="row">
       <button class="p" id="go" disabled>Nén PDF</button>
@@ -128,23 +128,27 @@ code{background:var(--bg);padding:1px 5px;border-radius:4px}
 
   <div id="pane-split" style="display:none">
     <div class="card">
+      <div class="row"><b>Xem trước và sửa trang trước khi tách</b>
+        <button id="treset" disabled>Khôi phục ban đầu</button></div>
+      <div class="mut" id="tinfo">Chưa có trang nào.</div>
+      <div class="row" style="margin-top:12px"><b>Tự động đánh dấu trang trắng</b></div>
+      <div class="row"><label>Độ nhạy: <b id="tsv">3</b>/5</label>
+        <input id="tsens" type="range" min="1" max="5" step="1" value="3"></div>
+      <div class="mut" id="tsn" style="margin:-4px 0 8px"></div>
+      <div class="row"><label><input id="tmargin" type="checkbox" checked> Bỏ qua lề 4% khi dò</label>
+        <button id="tprev" disabled>Dò trang trắng</button>
+        <button id="tstop" disabled>Dừng</button></div>
+      <div class="mut" id="tres"></div>
+    </div>
+    <div class="card">
       <div class="row">
-        <label><input type="radio" name="sm" value="pages" checked> Tách theo số trang</label>
+        <label><input type="radio" name="sm" value="files" checked> Tách theo số file</label>
         <label><input type="radio" name="sm" value="size"> Tách theo dung lượng</label>
-        <label><input type="radio" name="sm" value="files"> Tách theo số file</label>
+        <label><input type="radio" name="sm" value="pages"> Tách theo số trang</label>
       </div>
-      <div class="row" id="sp-pages"><label>Số trang mỗi file</label><input id="sp-n" type="number" min="1" step="1" value="10"></div>
-      <div class="row" id="sp-files" style="display:none"><label>Số file cần tách ra</label><input id="sp-f" type="number" min="1" step="1" value="3"></div>
+      <div class="row" id="sp-pages" style="display:none"><label>Số trang mỗi file</label><input id="sp-n" type="number" min="1" step="1" value="10"></div>
+      <div class="row" id="sp-files"><label>Số file cần tách ra</label><input id="sp-f" type="number" min="1" step="1" value="3"></div>
       <div class="row" id="sp-size" style="display:none"><label>Tối đa mỗi file (MB)</label><input id="sp-mb" type="number" min="0.1" step="0.1" value="5"></div>
-      <div class="row"><label><input id="sblank" type="checkbox"> Tự động xóa trang trắng</label></div>
-      <div id="sbopt" style="display:none">
-        <div class="row"><label>Độ nhạy: <b id="ssv">3</b>/5</label>
-          <input id="ssens" type="range" min="1" max="5" step="1" value="3"></div>
-        <div class="mut" id="ssn" style="margin:-4px 0 8px"></div>
-        <div class="row"><label><input id="smargin" type="checkbox" checked> Bỏ qua lề 4% khi dò</label>
-          <button id="sprev" disabled>Dò trước</button></div>
-        <div class="mut" id="sbres"></div>
-      </div>
       <div class="row">
         <button class="p" id="sgo" disabled>Tách PDF</button>
         <button id="sstop" disabled>Dừng</button>
@@ -158,7 +162,15 @@ code{background:var(--bg);padding:1px 5px;border-radius:4px}
       <div id="sl" style="margin-top:8px"></div>
       <div class="row"><button class="p" id="szip">Tải tất cả (.zip)</button></div>
     </div>
-    <p class="mut">Tách không nén lại: ảnh, font và nội dung của từng trang được sao chép nguyên bản nên chất lượng giữ nguyên 100%, chữ vẫn bôi chọn và tìm kiếm được. Mục lục (bookmark) và biểu mẫu của file gốc có thể không được giữ lại. Khi tách theo dung lượng, một trang đơn lẻ lớn hơn giới hạn vẫn được giữ riêng thành một file.</p>
+    <div class="card">
+      <div class="mut">Bấm vào ảnh để xem lớn • kéo thả thẻ trang để đổi thứ tự (hoặc dùng nút ← →) • ↺ ↻ xoay trang • 🗑 xóa / khôi phục trang. Tách PDF sẽ áp dụng đúng thứ tự, góc xoay và các trang bạn đã chọn ở đây.</div>
+      <div class="pgrid" id="tgrid"></div>
+    </div>
+    <div id="tmodal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:50;align-items:center;justify-content:center;flex-direction:column;cursor:zoom-out">
+      <canvas id="tmc" style="max-width:94vw;max-height:86vh;background:#fff"></canvas>
+      <div id="tmt" style="color:#fff;margin-top:8px;font-size:13px"></div>
+    </div>
+    <p class="mut">Tách không nén lại: ảnh, font và nội dung của từng trang được sao chép nguyên bản nên chất lượng giữ nguyên 100%, chữ vẫn bôi chọn và tìm kiếm được. Mục lục (bookmark) và biểu mẫu của file gốc có thể không được giữ lại. Khi tách theo dung lượng, một trang đơn lẻ lớn hơn giới hạn vẫn được giữ riêng thành một file. Thứ tự, góc xoay và các trang đã xóa trong phần xem trước được áp dụng trước khi tách.</p>
   </div>
   <div id="pane-blank" style="display:none">
     <div class="card">
@@ -296,7 +308,7 @@ const ready=(async()=>{
 })();
 const useWorker=()=>{};
 $("st").textContent="Đang nạp thư viện...";
-ready.then(()=>{$("st").textContent="Chọn file để bắt đầu.";if(pdfFile){$("go").disabled=false;$("sprev").disabled=false}})
+ready.then(()=>{$("st").textContent="Chọn file để bắt đầu.";if(pdfFile){$("go").disabled=false}})
      .catch(e=>{$("st").innerHTML='<span class="er">Không nạp được pdf.js: '+(e&&e.message||e)+'</span>'});
 
 // --- UI ---
@@ -326,8 +338,6 @@ const LV=[null,
  {t:160,r:6e-3,n:"Cao — bỏ qua cả vài nét/chữ rất nhỏ"},
  {t:130,r:1.5e-2,n:"Rất cao — xóa cả trang chỉ có số trang hoặc dòng đầu trang"}];
 const fmtList=a=>{const o=[];for(let i=0;i<a.length;){let j=i;while(j+1<a.length&&a[j+1]===a[j]+1)j++;o.push(j>i?a[i]+"–"+a[j]:""+a[i]);i=j+1}return o.join(", ")};
-const margin=()=>$("smargin").checked?0.04:0;
-const keyOf=()=>pdfFile?pdfFile.name+"|"+pdfFile.size+"|"+pdfFile.lastModified+"|"+margin():"";
 const inkOf=(h,t,lv)=>{let c=0;for(let g=0;g<lv.t;g++)c+=h[g];return c/t};
 function splitPages(sc,lvl){
   const lv=LV[lvl],keep=[],removed=[];
@@ -356,15 +366,11 @@ async function scanDoc(doc,total,m,pbId,stId){
   }
   return{hists,totals};
 }
-async function getScan(doc,total,pbId="pb",stId="st"){
-  const m=margin(),key=keyOf();
-  if(scan&&scan.key===key)return scan;
-  return scan={key,...await scanDoc(doc,total,m,pbId,stId)};
-}
+
 function setFile(f){
   if(!f)return;
   if(f.type!=="application/pdf"&&!/\.pdf$/i.test(f.name)){$("st").textContent="Vui lòng chọn file PDF.";return}
-  pdfFile=f;outBlob=null;scan=null;EC.loadFile(f);$("sgo").disabled=false;$("sprev").disabled=!pdfjsLib;showSBlank();EZ.loadFile(f);$("sres").style.display="none";$("sst").textContent="Sẵn sàng.";$("spb").style.width="0";$("res").style.display="none";
+  pdfFile=f;outBlob=null;scan=null;edLoadedFor={};syncEditor();$("sgo").disabled=false;$("sres").style.display="none";$("sst").textContent="Sẵn sàng.";$("spb").style.width="0";$("res").style.display="none";
   $("info").textContent=f.name+" — "+fmt(f.size);
   $("go").disabled=!pdfjsLib;
   $("st").textContent="Sẵn sàng.";$("pb").style.width="0";
@@ -469,6 +475,7 @@ document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
   document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===b));
   ["compress","split","blank","merge"].forEach(t=>$("pane-"+t).style.display=b.dataset.t===t?"block":"none");
   $("filecard").style.display=b.dataset.t==="merge"?"none":"block";
+  syncEditor();
 });
 document.querySelectorAll("[name=sm]").forEach(r=>r.onchange=()=>{
   const z=document.querySelector("[name=sm]:checked").value;
@@ -510,9 +517,12 @@ function makeZip(files){
   return new Blob([...parts,...cen,new Uint8Array(e.buffer)],{type:"application/zip"});
 }
 
-async function buildPart(PL,src,idx){ // sao chép nguyên bản các trang idx (không mã hóa lại)
+async function buildPart(PL,src,idx,rots){ // sao chép nguyên bản các trang idx (không mã hóa lại), có thể thêm góc xoay
   const d=await PL.PDFDocument.create({updateMetadata:false});
-  (await d.copyPages(src,idx)).forEach(p=>d.addPage(p));
+  (await d.copyPages(src,idx)).forEach((p,k)=>{
+    const r=rots&&rots[k];if(r)p.setRotation(PL.degrees((((p.getRotation().angle+r)%360)+360)%360));
+    d.addPage(p);
+  });
   return d.save();
 }
 const tick=()=>new Promise(r=>setTimeout(r));
@@ -522,33 +532,28 @@ $("sstop").onclick=()=>{stop=true};
 $("sgo").onclick=async()=>{
   if(!pdfFile||busy)return;
   busy=true;stop=false;
-  $("sgo").disabled=$("go").disabled=$("sprev").disabled=true;$("sstop").disabled=false;$("sres").style.display="none";
+  $("sgo").disabled=$("go").disabled=true;$("sstop").disabled=false;$("sres").style.display="none";
   surls.forEach(u=>URL.revokeObjectURL(u));surls=[];sparts=[];
   const mode=document.querySelector("[name=sm]:checked").value,over=[];let note="";
   try{
     $("sst").textContent="Đang nạp thư viện...";
     const PL=await loadPdfLib();
     $("sst").textContent="Đang đọc file...";await tick();
-    const bytes=new Uint8Array(await pdfFile.arrayBuffer());
-    const src=await PL.PDFDocument.load(bytes,{updateMetadata:false});
-    const N=src.getPageCount(),raw=[];
-    let keep=Array.from({length:N},(_,i)=>i),removed=[];
-    if($("sblank").checked){
-      await ready;
-      const doc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
-      try{const r=splitPages(await getScan(doc,N,"spb","sst"),+$("ssens").value);keep=r.keep.map(x=>x-1);removed=r.removed}
-      finally{doc.destroy()}
-      if(!keep.length)throw new Error("Tất cả các trang đều bị coi là trắng — hãy giảm độ nhạy.");
-      $("spb").style.width="0";
-    }
-    const n=keep.length;
+    await ET.loaded();
+    const live=ET.live(),N=ET.total(),bytes=ET.bytes();
+    if(!bytes)throw new Error("Chưa đọc được file PDF.");
+    if(!live.length)throw new Error("Không còn trang nào để tách — hãy bỏ dấu xóa ở ít nhất một trang.");
+    const src=await PL.PDFDocument.load(bytes,{updateMetadata:false}),raw=[];
+    const keep=live.map(l=>l.page),rots=live.map(l=>l.rot),n=keep.length;
+    const asc=keep.every((v,i)=>i===0||v>keep[i-1]);
+    const lab=(s0,e)=>({a:asc?keep[s0]+1:s0+1,b:asc?keep[e-1]+1:e,c:e-s0});
     if(mode==="pages"){
       const per=Math.floor(+$("sp-n").value);
       if(!(per>=1))throw new Error("Số trang mỗi file phải từ 1 trở lên.");
       for(let s0=0;s0<n;s0+=per){
         if(stop)throw new Error("Đã dừng.");
         const e=Math.min(n,s0+per);
-        raw.push({a:keep[s0]+1,b:keep[e-1]+1,c:e-s0,data:await buildPart(PL,src,keep.slice(s0,e))});
+        raw.push({...lab(s0,e),data:await buildPart(PL,src,keep.slice(s0,e),rots.slice(s0,e))});
         $("spb").style.width=(e/n*100)+"%";$("sst").textContent="Đang tách trang "+e+"/"+n+"...";await tick();
       }
     }else if(mode==="files"){
@@ -559,7 +564,7 @@ $("sgo").onclick=async()=>{
       for(let i=0;i<K;i++){ // chia đều số trang; các file đầu nhận thêm 1 trang nếu còn dư
         if(stop)throw new Error("Đã dừng.");
         const e=s0+base+(i<ex?1:0);
-        raw.push({a:keep[s0]+1,b:keep[e-1]+1,c:e-s0,data:await buildPart(PL,src,keep.slice(s0,e))});
+        raw.push({...lab(s0,e),data:await buildPart(PL,src,keep.slice(s0,e),rots.slice(s0,e))});
         s0=e;$("spb").style.width=(e/n*100)+"%";$("sst").textContent="Đang tách file "+(i+1)+"/"+K+"...";await tick();
       }
     }else{
@@ -572,15 +577,15 @@ $("sgo").onclick=async()=>{
         // tìm số trang lớn nhất sao cho file thực tế <= giới hạn (đo bằng cách dựng file thật)
         for(let probe=0;probe<10&&lo+1<hi;probe++){
           k=Math.min(Math.max(k,lo+1),hi-1);
-          const b=await buildPart(PL,src,keep.slice(s0,s0+k));
+          const b=await buildPart(PL,src,keep.slice(s0,s0+k),rots.slice(s0,s0+k));
           if(b.length<=limit){lo=k;best=b;bk=k;if(k===rem)break;k=Math.max(k+1,Math.floor(k*limit/b.length))}
           else{hi=k;k=Math.min(k-1,Math.floor(k*limit/b.length))}
           if(best&&best.length>=limit*0.95)break;
           if(stop)throw new Error("Đã dừng.");
           await tick();
         }
-        if(!best){bk=1;best=await buildPart(PL,src,[keep[s0]]);if(best.length>limit)over.push(keep[s0]+1)}
-        raw.push({a:keep[s0]+1,b:keep[s0+bk-1]+1,c:bk,data:best});
+        if(!best){bk=1;best=await buildPart(PL,src,[keep[s0]],[rots[s0]]);if(best.length>limit)over.push(asc?keep[s0]+1:s0+1)}
+        raw.push({...lab(s0,s0+bk),data:best});
         avg=best.length/bk;s0+=bk;
         $("spb").style.width=(s0/n*100)+"%";$("sst").textContent="Đang tách trang "+s0+"/"+n+"...";await tick();
       }
@@ -601,12 +606,12 @@ $("sgo").onclick=async()=>{
       row.append(t,a);box.appendChild(row);
     });
     $("ssum").innerHTML='<span class="ok">Đã tách thành '+sparts.length+' file</span>';
-    $("sdet").textContent=N+" trang"+(removed.length?" (đã xóa trang trắng: "+fmtList(removed)+")":"")+" • tổng "+fmt(tot)+" (file gốc "+fmt(pdfFile.size)+")"+(over.length?" • Trang "+fmtList(over)+" tự nó đã vượt giới hạn dung lượng nên được giữ riêng.":"")+note;
+    $("sdet").textContent=N+" trang"+(N-n?" (đã xóa "+(N-n)+" trang)":"")+(live.some(l=>l.rot)?" • xoay "+live.filter(l=>l.rot).length+" trang":"")+(!asc?" • đã sắp xếp lại":"")+" • tổng "+fmt(tot)+" (file gốc "+fmt(pdfFile.size)+")"+(over.length?" • Trang "+fmtList(over)+" tự nó đã vượt giới hạn dung lượng nên được giữ riêng.":"")+note;
     $("sres").style.display="block";$("sst").textContent="Hoàn tất.";
   }catch(e){
     $("sst").innerHTML='<span class="er">'+(e&&e.message||e)+'</span>';
   }finally{
-    busy=false;$("sgo").disabled=false;$("go").disabled=!pdfjsLib;$("sprev").disabled=!pdfjsLib;$("sstop").disabled=true;
+    busy=false;$("sgo").disabled=false;$("go").disabled=!pdfjsLib;$("sstop").disabled=true;
   }
 };
 $("szip").onclick=()=>{
@@ -614,27 +619,6 @@ $("szip").onclick=()=>{
   const z=makeZip(sparts.map(p=>({name:p.name,data:p.data}))),a=document.createElement("a");
   a.href=URL.createObjectURL(z);a.download=pdfFile.name.replace(/\.pdf$/i,"")+"_tach.zip";
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-};
-
-function showSBlank(){
-  const lv=LV[+$("ssens").value];
-  $("ssv").textContent=$("ssens").value;$("ssn").textContent=lv.n;
-  if(!scan||scan.key!==keyOf()){$("sbres").textContent="";return}
-  const r=splitPages(scan,+$("ssens").value);
-  $("sbres").innerHTML="<b>"+r.removed.length+"</b>/"+scan.hists.length+" trang bị coi là trắng"+(r.removed.length?": "+fmtList(r.removed):"");
-}
-$("sblank").onchange=()=>{$("sbopt").style.display=$("sblank").checked?"block":"none";showSBlank()};
-$("ssens").oninput=showSBlank;$("smargin").onchange=showSBlank;showSBlank();
-$("sprev").onclick=async()=>{
-  if(!pdfFile||busy||!pdfjsLib)return;
-  busy=true;stop=false;$("sgo").disabled=$("sprev").disabled=true;$("sstop").disabled=false;
-  let doc;
-  try{
-    await ready;
-    doc=await pdfjsLib.getDocument({data:await pdfFile.arrayBuffer()}).promise;
-    await getScan(doc,doc.numPages,"spb","sst");showSBlank();$("sst").textContent="Đã dò xong — kéo thanh độ nhạy để xem kết quả.";
-  }catch(e){$("sst").innerHTML='<span class="er">'+(e&&e.message||e)+'</span>'}
-  finally{if(doc)doc.destroy();busy=false;$("sgo").disabled=!pdfFile;$("sprev").disabled=false;$("sstop").disabled=true}
 };
 
 // ================= BỘ CHỈNH SỬA TRANG (dùng cho tab Chỉnh sửa PDF và tab Gộp file) =================
@@ -864,12 +848,20 @@ function createEditor(P,opt){
   return{
     load:(b,n)=>(loadP=loadInner(b,n)),
     loadFile:f=>(loadP=(async()=>loadInner(new Uint8Array(await f.arrayBuffer()),f.name))()),
-    loaded:()=>loadP,doc:()=>ED.docs[0],total:()=>ED.items.length,
+    loaded:()=>loadP,doc:()=>ED.docs[0],total:()=>ED.items.length,bytes:()=>ED.src.length?ED.src[0].bytes:null,
     live:()=>ED.items.filter(it=>!del(it)).map(it=>({page:it.page,rot:it.rot}))
   };
 }
 const EZ=createEditor("z",{suffix:"_chinh-sua"});
 const EC=createEditor("c",{suffix:"",pb:"pb",st:"st"});
+const ET=createEditor("t",{suffix:"",pb:"spb",st:"sst"});
+// Chỉ nạp bộ chỉnh sửa của tab đang mở (tiết kiệm bộ nhớ với file lớn); đổi tab thì nạp tiếp
+let edLoadedFor={};
+const edByTab={compress:EC,split:ET,blank:EZ};
+function syncEditor(){
+  const e=edByTab[curTab];
+  if(e&&pdfFile&&edLoadedFor[curTab]!==pdfFile){edLoadedFor[curTab]=pdfFile;e.loadFile(pdfFile)}
+}
 
 // ================= TAB GỘP FILE =================
 // --- đọc zip (docx/xlsx) bằng DecompressionStream của trình duyệt ---
